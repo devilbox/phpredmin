@@ -23,8 +23,8 @@ $REDIS_HOST_NAME = 'redis';
 $REDIS_HOST_ADDR = gethostbyname($REDIS_HOST_NAME.'');
 
 if (filter_var($REDIS_HOST_ADDR, FILTER_VALIDATE_IP) === false) {
-	echo 'Not started';
-	exit(1);
+	echo 'Redis container is not running.';
+	exit(0);
 }
 
 /* Route to Framework */
