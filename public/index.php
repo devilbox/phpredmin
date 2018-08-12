@@ -1,6 +1,7 @@
 <?php
-function __autoload($class)
-{
+
+/* New Autoloader funtion */
+spl_autoload_register(function($class) {
     $path = '../';
     if (preg_match('/^(.*)_Controller$/', $class, $matches)) {
         $class = $matches[1];
@@ -15,43 +16,16 @@ function __autoload($class)
         $dir = 'libraries';
     }
     include_once($path.$dir.'/'.(strtolower($class)).'.php');
-}
-if (isset(App::instance()->config['timezone'])) {
-    date_default_timezone_set(App::instance()->config['timezone']);
+});
 
-}
+/* Check if Redis is available */
+$REDIS_HOST_NAME = 'redis';
+$REDIS_HOST_ADDR = gethostbyname($REDIS_HOST_NAME.'');
 
-$authenticated = true;
-
-if (PHP_SAPI !== 'cli' && isset(App::instance()->config['auth'])) {
-    $username = null;
-    $password = null;
-
-    $auth = App::instance()->config['auth'];
-
-if(isset($auth['username']) && isset($auth['password']))
-    {
-        // mod_php
-        if (isset($_SERVER['PHP_AUTH_USER'])) {
-            $username = $_SERVER['PHP_AUTH_USER'];
-            $password = $_SERVER['PHP_AUTH_PW'];
-            // most other servers
-        } elseif (isset($_SERVER['HTTP_AUTHORIZATION']) && strpos(strtolower($_SERVER['HTTP_AUTHORIZATION']), 'basic') === 0) {
-      		list($username, $password) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
-        }
-
-        if ($username != $auth['username'] || !password_verify($password, $auth['password'])) {
-            $authenticated = false;
-        }
-    }
+if (filter_var($REDIS_HOST_ADDR, FILTER_VALIDATE_IP) === false) {
+	echo 'Redis container is not running.';
+	exit(0);
 }
 
-if ($authenticated) {
-    $error = new Error();
-    Router::instance()->route();
-} else {
-    header('WWW-Authenticate: Basic realm="PHPRedis Administrator"');
-    header('HTTP/1.0 401 Unauthorized');
-    echo 'Not Authorized';
-    die();
-}
+/* Route to Framework */
+Router::instance()->route();

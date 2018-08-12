@@ -1,17 +1,32 @@
 <?php
+
+
+// Check if redis is using a password
+$REDIS_ROOT_PASSWORD = null;
+
+$_REDIS_ARGS = getenv('REDIS_ARGS');
+$_REDIS_PASS = preg_split("/--requirepass\s+/",  $_REDIS_ARGS);
+if (is_array($_REDIS_PASS) && count($_REDIS_PASS)) {
+	// In case the option is specified multiple times, use the last effective one.
+	$_REDIS_PASS = $_REDIS_PASS[count($_REDIS_PASS)-1];
+	if (strlen($_REDIS_PASS) > 0) {
+		$REDIS_ROOT_PASSWORD = $_REDIS_PASS;
+	}
+}
+
 $config = array(
     'default_controller' => 'Welcome',
     'default_action'     => 'Index',
     'production'         => true,
     'default_layout'     => 'layout',
-    'timezone'           => 'Europe/Amsterdam',
-    'auth' => array(
-        'username' => 'admin',
-        'password' => password_hash('admin', PASSWORD_DEFAULT)
-	),
+//    'timezone'           => 'Europe/Amsterdam',
+//    'auth' => array(
+//        'username' => 'admin',
+//        'password' => password_hash('admin', PASSWORD_DEFAULT)
+//	),
     'log' => array(
         'driver'    => 'file',
-        'threshold' => 1, /* 0: Disable Logging 1: Error 2: Notice 3: Info 4: Warning 5: Debug */
+        'threshold' => 0, /* 0: Disable Logging 1: Error 2: Notice 3: Info 4: Warning 5: Debug */
         'file'      => array(
             'directory' => 'logs'
         )
@@ -27,7 +42,7 @@ $config = array(
             array(
                 'host'     => 'localhost',
                 'port'     => '6379',
-                'password' => null,
+                'password' => $REDIS_ROOT_PASSWORD,
                 'database' => 0,
                 'max_databases' => 16, /* Manual configuration of max databases for Redis < 2.6 */
                 'stats'    => array(
